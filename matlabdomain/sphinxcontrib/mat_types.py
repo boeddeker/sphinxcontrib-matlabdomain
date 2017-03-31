@@ -424,9 +424,19 @@ class MatFunction(MatObject):
             raise TypeError('Object is not a function. Expected a function.')
             # TODO: what is a better error here?
         # skip blanks and tabs
-        if tks.pop()[0] is not Token.Text.Whitespace:  # @UndefinedVariable
-            raise TypeError('Expected a whitespace after function keyword.')
-            # TODO: what is a better error here?
+        whitespace = tks.pop()
+
+        if whitespace[0] is not Token.Text.Whitespace:  # @UndefinedVariable
+            if whitespace[1] != ' ':
+                tmp = [value for t, value in self.tokens]
+                tmp.insert(-len(tks)-1, '\033[91m')
+                tmp.insert(-len(tks), '\033[0m')
+                print(''.join(tmp))
+
+                raise TypeError('Expected a whitespace after function keyword.'
+                                'modname: {}, name: {}, func name: {}'
+                                ''.format(modname, name, self.name))
+                # TODO: what is a better error here?
         # =====================================================================
         # output args
         retv = tks.pop()  # return values
@@ -468,13 +478,29 @@ class MatFunction(MatObject):
             # no arguments given
             elif args == (Token.Punctuation, ')'):
                 tks.append(args)  # put closing parenthesis back in stack
+            elif args[0] is Token.Name:
+                 
+                tmp = [value for t, value in self.tokens]
+                tmp.insert(-len(tks)-1, '\033[91m')
+                tmp.insert(-len(tks), '\033[0m')
+                print(''.join(tmp))
+
+
+                raise TypeError('Expected input args. '
+                                'Probably  there is a not allowed "..." in '
+                                'the input args? '
+                                'modname: {}, name: {}, func name: {}'.format(
+                                    modname, name, self.name))
+
             # check if function args parsed correctly
             if tks.pop() != (Token.Punctuation, ')'):
                 raise TypeError('Token after outputs should be Punctuation.')
                 # TODO: raise an matlab token error or what?
         # skip blanks and tabs
         if tks.pop()[0] is not Token.Text.Whitespace:  # @UndefinedVariable
-            raise TypeError('Expected a whitespace after input args.')
+            raise TypeError('Expected a whitespace after input args.'
+                            'modname: {}, name: {}, func name: {}'.format(
+                                whitespace, modname, name, self.name))
             # TODO: what is a better error here?
         # =====================================================================
         # docstring
